@@ -43,12 +43,17 @@ HTML5
 CSS3
 JavaScript
 Chart.js (for data visualization)
+Leaflet
 
 #Backend
 Node.js
 Express.js
-API
-AQICN API (Air Quality Data)
+Axios
+Dotenv
+CORS
+
+#API
+Openweather API (Air Quality Data)
 
 #How It Works
 User enters city name
