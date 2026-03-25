@@ -8,8 +8,13 @@ import { generateAIAdvice } from "../services/aiService.js";
 
 export const getDashboardSummary = async (req, res) => {
   try {
-    const { city = "Mumbai, Maharashtra", lat, lon } = req.query;
-    const summary = await fetchDashboardBundle({ city, lat, lon });
+    const { city = "Mumbai, Maharashtra", lat, lon, record } = req.query;
+    const summary = await fetchDashboardBundle({
+      city,
+      lat,
+      lon,
+      recordSnapshot: record !== "false"
+    });
     const recommendations = generateAIAdvice(summary);
 
     res.json({

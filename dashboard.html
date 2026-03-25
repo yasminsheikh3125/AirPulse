@@ -28,6 +28,7 @@
   <div class="sidebar-section">
     <div class="sidebar-section-label">Overview</div>
     <div class="nav-item active" data-tab="dashboard"><span class="ni-icon">D</span>Dashboard</div>
+    <div class="nav-item" data-tab="trends"><span class="ni-icon">T</span>Trend Memory</div>
     <div class="nav-item" data-tab="heatmap"><span class="ni-icon">M</span>Heatmap</div>
     <div class="nav-item" data-tab="forecast"><span class="ni-icon">F</span>Forecast</div>
   </div>
@@ -35,7 +36,7 @@
   <div class="sidebar-section">
     <div class="sidebar-section-label">Insights</div>
     <div class="nav-item" data-tab="health"><span class="ni-icon">H</span>Health Alerts</div>
-    <div class="nav-item" data-tab="notifications"><span class="ni-icon">N</span>Notifications <span style="margin-left:auto;background:rgba(239,68,68,.15);color:#fca5a5;font-size:10px;padding:1px 6px;border-radius:10px;font-family:var(--font-mono)">4</span></div>
+    <div class="nav-item" data-tab="notifications"><span class="ni-icon">N</span>Notifications <span class="nav-count" id="sidebar-notif-count">0</span></div>
   
   </div>
 
@@ -55,9 +56,10 @@
       <span id="topbar-city">Mumbai, Maharashtra</span>
     </div>
     <div class="topbar-actions">
+      <button class="action-btn" id="save-place-btn" type="button">Save Place</button>
       <div class="timestamp" id="clock">-</div>
-      <div class="btn-icon notif-badge-btn">N</div>
-      <div class="btn-icon">S</div>
+      <button class="btn-icon notif-badge-btn" id="topbar-notif-btn" type="button" aria-label="Open notifications">N</button>
+      <button class="btn-icon" id="topbar-summary-btn" type="button" aria-label="Jump to dashboard summary">S</button>
     </div>
   </div>
 
@@ -83,6 +85,7 @@
         <div style="text-align:center">
           <span class="aqi-badge" id="aqi-status-badge" style="background:rgba(240,165,0,.12);color:#fde068;border:1px solid rgba(240,165,0,.25)">Loading...</span>
         </div>
+        <div class="live-aqi-note" id="live-aqi-note">Live station AQI unavailable</div>
       </div>
 
       <div class="card card-sm" style="border-top: 2px solid var(--accent2);">
@@ -110,7 +113,48 @@
       </div>
     </div>
 
-    <div class="row cols-3 a3">
+    <div class="row a3" style="grid-template-columns:1fr;">
+      <div class="card summary-strip">
+        <div class="aqi-summary-head">
+          <div>
+            <span>AirPulse Summary</span>
+            <p class="summary-strip-sub">A simplified read of the current AQI, weather, and exposure conditions.</p>
+          </div>
+          <button class="speak-btn" id="speak-summary-btn" type="button" aria-label="Read AQI summary aloud">Speak Summary</button>
+        </div>
+        <div class="summary-strip-grid">
+          <p class="aqi-summary-text" id="aqi-summary-text">Loading a plain-language summary for this location.</p>
+          <div class="summary-facts">
+            <div class="summary-fact">
+              <span>Air quality</span>
+              <strong id="summary-aqi-label">-</strong>
+            </div>
+            <div class="summary-fact">
+              <span>Live Station</span>
+              <strong id="summary-live-aqi">-</strong>
+            </div>
+            <div class="summary-fact">
+              <span>Weather</span>
+              <strong id="summary-weather">-</strong>
+            </div>
+            <div class="summary-fact">
+              <span>PM2.5</span>
+              <strong id="summary-pm25">-</strong>
+            </div>
+            <div class="summary-fact">
+              <span>Feels like</span>
+              <strong id="summary-feels">-</strong>
+            </div>
+            <div class="summary-fact">
+              <span>Dominant</span>
+              <strong id="summary-dominant">-</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row cols-3 a4">
       <div class="card">
         <div class="section-hd">Pollutant Breakdown <span class="section-badge">Real-time</span></div>
         <div class="pollutant-grid">
@@ -149,6 +193,91 @@
           <div class="sh-legend-item"><span class="sh-legend-dot" style="background:var(--moderate)"></span>Moderate</div>
           <div class="sh-legend-item"><span class="sh-legend-dot" style="background:var(--unhealthy)"></span>Avoid</div>
         </div>
+      </div>
+    </div>
+
+    <div class="row a4" style="grid-template-columns:1fr;">
+      <div class="card">
+        <div class="section-hd">Saved Places Compare <span class="section-badge">Personalized</span></div>
+        <div class="compare-head">
+          <div>
+            <p>Pin the places you care about and watch which one is safest right now.</p>
+            <div class="compare-status" id="compare-status">Saved places refresh on demand.</div>
+          </div>
+          <button class="ghost-btn" id="refresh-compare-btn" type="button">Refresh Compare</button>
+        </div>
+        <div class="compare-list" id="compare-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-trends" style="display:none;">
+    <div class="trend-hero a2">
+      <div class="trend-hero-copy">
+        <span class="trend-hero-badge">History-Aware Intelligence</span>
+        <h2 id="trend-hero-title">Trend memory is building for this location.</h2>
+        <p id="trend-hero-text">AirPulse is starting to learn how this location behaves over time so you can spot deterioration, recovery, and repeating pollution patterns.</p>
+      </div>
+      <div class="trend-hero-aside">
+        <div class="trend-hero-ring" id="trend-hero-ring">-</div>
+        <div class="trend-hero-caption" id="trend-hero-caption">Current AQI snapshot</div>
+      </div>
+    </div>
+
+    <div class="row cols-4 a3">
+      <div class="card card-sm trend-stat-card">
+        <div class="card-label">Trend</div>
+        <div class="trend-stat-value" id="trend-direction">Building history</div>
+        <div class="card-sub" id="trend-delta">Need a few snapshots to compare movement.</div>
+      </div>
+      <div class="card card-sm trend-stat-card">
+        <div class="card-label">24h Average</div>
+        <div class="trend-stat-value" id="trend-average">-</div>
+        <div class="card-sub" id="trend-captures">0 captures stored</div>
+      </div>
+      <div class="card card-sm trend-stat-card">
+        <div class="card-label">Best Recent</div>
+        <div class="trend-stat-value trend-stat-value-sm" id="trend-best">-</div>
+        <div class="card-sub">Cleanest stored moment</div>
+      </div>
+      <div class="card card-sm trend-stat-card">
+        <div class="card-label">Worst Recent</div>
+        <div class="trend-stat-value trend-stat-value-sm" id="trend-worst">-</div>
+        <div class="card-sub" id="trend-updated">-</div>
+      </div>
+    </div>
+
+    <div class="row cols-2b a4">
+      <div class="card trend-chart-card">
+        <div class="section-hd">Recent AQI Memory <span class="section-badge">Last Captures</span></div>
+        <div class="sparkline sparkline-lg" id="history-sparkline"></div>
+      </div>
+      <div class="card trend-story-card">
+        <div class="section-hd">What This Means</div>
+        <div class="trend-story-grid">
+          <div class="trend-story-item">
+            <span class="trend-label">Current pattern</span>
+            <strong id="trend-story-pattern">Watching for change</strong>
+            <p id="trend-story-detail">More visits will make the story sharper.</p>
+          </div>
+          <div class="trend-story-item">
+            <span class="trend-label">Last recorded</span>
+            <strong id="trend-story-updated">-</strong>
+            <p>AirPulse stores one snapshot per hour for each location.</p>
+          </div>
+          <div class="trend-story-item">
+            <span class="trend-label">Window quality</span>
+            <strong id="trend-window-quality">-</strong>
+            <p id="trend-window-detail">Need more history to score stability.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row a5" style="grid-template-columns:1fr;">
+      <div class="card">
+        <div class="section-hd">Capture Timeline</div>
+        <div class="trend-timeline" id="trend-timeline"></div>
       </div>
     </div>
   </div>
