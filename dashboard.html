@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AirPulse - Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">AQ</div>
+    <div class="logo-name">Air<span>Pulse</span></div>
+  </div>
+
+  <div class="sidebar-live"><span class="live-dot"></span>Live Data Feed</div>
+
+  <div class="sidebar-search">
+    <svg width="13" height="13" fill="none" stroke="#5a6478" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input id="city-input" type="text" placeholder="Search city..." value="Mumbai, Maharashtra" />
+  </div>
+  <div class="search-status" id="search-status"></div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Overview</div>
+    <div class="nav-item active" data-tab="dashboard"><span class="ni-icon">D</span>Dashboard</div>
+    <div class="nav-item" data-tab="heatmap"><span class="ni-icon">M</span>Heatmap</div>
+    <div class="nav-item" data-tab="forecast"><span class="ni-icon">F</span>Forecast</div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Insights</div>
+    <div class="nav-item" data-tab="health"><span class="ni-icon">H</span>Health Alerts</div>
+    <div class="nav-item" data-tab="notifications"><span class="ni-icon">N</span>Notifications <span style="margin-left:auto;background:rgba(239,68,68,.15);color:#fca5a5;font-size:10px;padding:1px 6px;border-radius:10px;font-family:var(--font-mono)">4</span></div>
+  
+  </div>
+
+  <div class="sidebar-aqi-mini">
+    <div class="sam-location">Location: <span id="sidebar-city">Mumbai</span></div>
+    <div class="sam-val" id="sidebar-aqi" style="color:var(--moderate)">-</div>
+    <div class="sam-label" style="color:var(--muted2); font-size:12px;">AQI Index</div>
+    <div class="sam-bar"><div class="sam-bar-fill" id="sidebar-bar" style="width:0%;background:var(--moderate)"></div></div>
+    <div class="aqi-badge" id="sidebar-badge" style="background:rgba(240,165,0,.12);color:#fde068;border:1px solid rgba(240,165,0,.25);font-size:11px;">-</div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar a1">
+    <div class="topbar-title">
+      <span id="topbar-tab-title">Dashboard</span>
+      <span id="topbar-city">Mumbai, Maharashtra</span>
+    </div>
+    <div class="topbar-actions">
+      <div class="timestamp" id="clock">-</div>
+      <div class="btn-icon notif-badge-btn">N</div>
+      <div class="btn-icon">S</div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-dashboard">
+    <div class="row cols-4 a2">
+      <div class="card card-sm" style="border-top: 2px solid var(--moderate);">
+        <div class="card-label">AQI Index</div>
+        <div class="gauge-wrap">
+          <svg width="130" height="70" viewBox="0 0 130 70">
+            <defs>
+              <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#22c55e"/>
+                <stop offset="33%" stop-color="#f0a500"/>
+                <stop offset="66%" stop-color="#f97316"/>
+                <stop offset="100%" stop-color="#ef4444"/>
+              </linearGradient>
+            </defs>
+            <path d="M10,65 A55,55 0 0,1 120,65" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="10" stroke-linecap="round"/>
+            <path id="gauge-arc" d="M10,65 A55,55 0 0,1 120,65" fill="none" stroke="url(#gaugeGrad)" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 172"/>
+            <text id="gauge-text" x="65" y="60" text-anchor="middle" font-family="DM Mono,monospace" font-size="22" font-weight="500" fill="#dde4f0">-</text>
+          </svg>
+        </div>
+        <div style="text-align:center">
+          <span class="aqi-badge" id="aqi-status-badge" style="background:rgba(240,165,0,.12);color:#fde068;border:1px solid rgba(240,165,0,.25)">Loading...</span>
+        </div>
+      </div>
+
+      <div class="card card-sm" style="border-top: 2px solid var(--accent2);">
+        <div class="card-label">Temperature</div>
+        <div class="kpi-icon">T</div>
+        <div class="card-val" id="temp-val" style="color:var(--accent2)">- C</div>
+        <div class="card-sub" id="feels-like">Feels like - C</div>
+        <div class="kpi-change kpi-up">Live weather</div>
+      </div>
+
+      <div class="card card-sm" style="border-top: 2px solid var(--usg);">
+        <div class="card-label">PM2.5 Concentration</div>
+        <div class="kpi-icon">P</div>
+        <div class="card-val" id="pm25-kpi" style="color:var(--usg)">-</div>
+        <div class="card-sub">ug/m3 - WHO Limit: 15</div>
+        <div class="kpi-change kpi-up">Live pollutant reading</div>
+      </div>
+
+      <div class="card card-sm" style="border-top: 2px solid var(--accent);">
+        <div class="card-label">Humidity</div>
+        <div class="kpi-icon">H</div>
+        <div class="card-val" id="humidity-kpi" style="color:var(--accent)">-%</div>
+        <div class="card-sub" id="wind-kpi">Wind - m/s</div>
+        <div class="kpi-change kpi-same">Live weather update</div>
+      </div>
+    </div>
+
+    <div class="row cols-3 a3">
+      <div class="card">
+        <div class="section-hd">Pollutant Breakdown <span class="section-badge">Real-time</span></div>
+        <div class="pollutant-grid">
+          <div class="p-stat"><div class="name">PM2.5</div><div class="pval" id="pm25">-</div><span class="unit">ug/m3</span><div class="bar"><div class="bar-fill" id="pm25bar" style="width:0%;background:#f97316"></div></div></div>
+          <div class="p-stat"><div class="name">PM10</div><div class="pval" id="pm10">-</div><span class="unit">ug/m3</span><div class="bar"><div class="bar-fill" id="pm10bar" style="width:0%;background:#f0a500"></div></div></div>
+          <div class="p-stat"><div class="name">NO2</div><div class="pval" id="no2">-</div><span class="unit">ug/m3</span><div class="bar"><div class="bar-fill" id="no2bar" style="width:0%;background:var(--accent)"></div></div></div>
+          <div class="p-stat"><div class="name">O3</div><div class="pval" id="o3">-</div><span class="unit">ug/m3</span><div class="bar"><div class="bar-fill" id="o3bar" style="width:0%;background:var(--good)"></div></div></div>
+          <div class="p-stat"><div class="name">SO2</div><div class="pval" id="so2">-</div><span class="unit">ug/m3</span><div class="bar"><div class="bar-fill" id="so2bar" style="width:0%;background:var(--vunhealthy)"></div></div></div>
+          <div class="p-stat"><div class="name">CO</div><div class="pval" id="co">-</div><span class="unit">mg/m3</span><div class="bar"><div class="bar-fill" id="cobar" style="width:0%;background:var(--unhealthy)"></div></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-hd">Weather Conditions</div>
+        <div class="weather-icon-big" id="weather-icon">-</div>
+        <div style="text-align:center">
+          <div style="font-size:40px;font-weight:400;font-family:var(--font-mono)" id="temp-weather">- C</div>
+          <div style="font-size:13px;color:var(--muted2);margin-top:5px" id="weather-desc">-</div>
+        </div>
+        <div class="stat-pills">
+          <div class="sp"><span class="sl">Humidity</span><span class="sv" id="humidity">-%</span></div>
+          <div class="sp"><span class="sl">Wind</span><span class="sv" id="wind">- m/s</span></div>
+          <div class="sp"><span class="sl">Visibility</span><span class="sv" id="visibility">- km</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-hd">Best Hours Outside</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Hover over a block for details</div>
+        <div class="safe-hours-grid" id="safe-hours-grid"></div>
+        <div class="sh-label-row">
+          <span>12AM</span><span>6AM</span><span>12PM</span><span>6PM</span><span>11PM</span>
+        </div>
+        <div class="sh-legend">
+          <div class="sh-legend-item"><span class="sh-legend-dot" style="background:var(--good)"></span>Good</div>
+          <div class="sh-legend-item"><span class="sh-legend-dot" style="background:var(--moderate)"></span>Moderate</div>
+          <div class="sh-legend-item"><span class="sh-legend-dot" style="background:var(--unhealthy)"></span>Avoid</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-heatmap" style="display:none;">
+    <div class="row a2" style="grid-template-columns:1fr;">
+      <div class="card" style="padding:0; overflow:hidden;">
+        <div style="padding:16px 20px 12px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border);">
+          <span style="font-family:var(--font-display);font-size:14px;font-weight:700;">Location Air Map</span>
+          <span class="section-badge">Live Centered View</span>
+        </div>
+        <div class="map-wrap" style="height:480px; border-radius:0 0 var(--r-lg) var(--r-lg)">
+          <div id="live-map"></div>
+          <div class="map-overlay">
+            <p>Selected Location</p>
+            <strong id="zone-name">Loading map</strong>
+            <p style="margin-top:3px; font-size:12px;" id="zone-aqi"></p>
+          </div>
+          <div class="map-legend">
+            <div class="ml-item"><div class="ml-dot" style="background:var(--good)"></div>Good</div>
+            <div class="ml-item"><div class="ml-dot" style="background:var(--moderate)"></div>Moderate</div>
+            <div class="ml-item"><div class="ml-dot" style="background:var(--usg)"></div>USG</div>
+            <div class="ml-item"><div class="ml-dot" style="background:var(--unhealthy)"></div>Unhealthy</div>
+            <div class="ml-item"><div class="ml-dot" style="background:var(--vunhealthy)"></div>Very Unhealthy</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row cols-2b a3">
+      <div class="card">
+        <div class="section-hd">Zone AQI Rankings</div>
+        <div id="zone-rankings" style="display:flex;flex-direction:column;gap:7px;margin-top:4px;"></div>
+      </div>
+      <div class="card">
+        <div class="section-hd">Pollutant Share</div>
+        <div class="chart-wrap chart-wrap-sm"><canvas id="pollutant-chart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-forecast" style="display:none;">
+    <div class="row a2" style="grid-template-columns:1fr;">
+      <div class="card">
+        <div class="section-hd">72-Hour AQI Forecast <span class="section-badge">Predictive</span></div>
+        <div class="chart-wrap" style="height:260px;"><canvas id="forecast-chart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="row cols-2b a3">
+      <div class="card">
+        <div class="section-hd">Hourly AQI - Today</div>
+        <div class="hourly-scroll" id="hourly-grid"></div>
+      </div>
+      <div class="card">
+        <div class="section-hd">Best Hours Outside</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Hover for details</div>
+        <div class="safe-hours-grid" id="safe-hours-grid-forecast"></div>
+        <div class="sh-label-row">
+          <span>12AM</span><span>6AM</span><span>12PM</span><span>6PM</span><span>11PM</span>
+        </div>
+        <div class="sh-legend">
+          <div class="sh-legend-item"><span class="sh-legend-dot" style="background:var(--good)"></span>Good</div>
+          <div class="sh-legend-item"><span class="sh-legend-dot" style="background:var(--moderate)"></span>Moderate</div>
+          <div class="sh-legend-item"><span class="sh-legend-dot" style="background:var(--unhealthy)"></span>Avoid</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row cols-3 a4">
+      <div class="card card-sm" style="border-top:2px solid var(--good);">
+        <div class="card-label">Best Day</div>
+        <div class="kpi-icon">B</div>
+        <div class="card-val" style="color:var(--good);font-size:22px;" id="fc-best-day">-</div>
+        <div class="card-sub" id="fc-best-aqi">Avg AQI -</div>
+      </div>
+      <div class="card card-sm" style="border-top:2px solid var(--unhealthy);">
+        <div class="card-label">Worst Period</div>
+        <div class="kpi-icon">W</div>
+        <div class="card-val" style="color:var(--unhealthy);font-size:22px;" id="fc-worst-time">-</div>
+        <div class="card-sub" id="fc-worst-aqi">Peak AQI -</div>
+      </div>
+      <div class="card card-sm" style="border-top:2px solid var(--accent);">
+        <div class="card-label">3-Day Average</div>
+        <div class="kpi-icon">A</div>
+        <div class="card-val" style="color:var(--accent);font-size:22px;" id="fc-avg">-</div>
+        <div class="card-sub">AQI over 72 hours</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-health" style="display:none;">
+    <div class="card a2" style="margin-bottom:16px;">
+      <div class="section-hd">Health Recommendations <span class="section-badge">Persona-Based</span></div>
+      <div class="ptabs" id="persona-tabs">
+        <div class="ptab active" data-persona="general">General</div>
+        <div class="ptab" data-persona="asthma">Asthmatic</div>
+        <div class="ptab" data-persona="runner">Runner</div>
+        <div class="ptab" data-persona="child">Child / Elderly</div>
+        <div class="ptab" data-persona="pregnant">Pregnant</div>
+      </div>
+      <div class="alert-grid" id="alert-cards"></div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-notifications" style="display:none;">
+    <div class="card a2">
+      <div class="section-hd">Push Notifications</div>
+      <div class="notif-list" id="notif-list"></div>
+    </div>
+  </div>
+
+
+</main>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
